@@ -181,12 +181,12 @@ def main():
             with col1:
                 st.metric("Data Points", len(prices))
             with col2:
-                st.metric("Current Price", f"${prices[-1]:.2f}")
+                st.metric("Current Price", f"${float(prices[-1]):.2f}")
             with col3:
-                price_change = prices[-1] - prices[-2] if len(prices) > 1 else 0
+                price_change = float(prices[-1] - prices[-2]) if len(prices) > 1 else 0
                 st.metric("Price Change", f"${price_change:.2f}")
             with col4:
-                price_change_pct = (price_change / prices[-2] * 100) if len(prices) > 1 else 0
+                price_change_pct = (price_change / float(prices[-2]) * 100) if len(prices) > 1 else 0
                 st.metric("Change %", f"{price_change_pct:.2f}%")
             
             # Training section
@@ -288,19 +288,19 @@ def main():
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("Next Day Forecast", f"${forecast_prices[0]:.2f}")
+                st.metric("Next Day Forecast", f"${float(forecast_prices[0]):.2f}")
             with col2:
-                st.metric("5-Day Forecast", f"${forecast_prices[4]:.2f}")
+                st.metric("5-Day Forecast", f"${float(forecast_prices[4]):.2f}")
             with col3:
-                st.metric("10-Day Forecast", f"${forecast_prices[9]:.2f}")
+                st.metric("10-Day Forecast", f"${float(forecast_prices[9]):.2f}")
             
             # Forecast table
             st.subheader("📋 Detailed Forecast")
             forecast_df = pd.DataFrame({
                 'Date': future_dates,
                 'Forecasted Price': forecast_prices,
-                'Change from Current': forecast_prices - prices[-1],
-                'Change %': ((forecast_prices - prices[-1]) / prices[-1] * 100)
+                'Change from Current': forecast_prices - float(prices[-1]),
+                'Change %': ((forecast_prices - float(prices[-1])) / float(prices[-1]) * 100)
             })
             
             st.dataframe(forecast_df, use_container_width=True)
