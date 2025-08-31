@@ -100,16 +100,37 @@ def make_forecast(model, last_sequence, forecast_steps):
         current_sequence = last_sequence.clone()
         forecasts = []
         
-        for _ in range(forecast_steps):
-            # Reshape for prediction
-            if current_sequence.dim() == 2:
-                current_sequence = current_sequence.unsqueeze(-1)
+        for i in range(forecast_steps):
+            # Debug: Print tensor shape at each step
+            print(f"Step {i}: current_sequence shape: {current_sequence.shape}")
+            
+            # Ensure current_sequence is 3D: (batch_size, sequence_length, input_features)
+            if current_sequence.dim() == 1:
+                # If 1D, reshape to (1, sequence_length, 1)
+                current_sequence = current_sequence.unsqueeze(0).unsqueeze(-1)
+            elif current_sequence.dim() == 2:
+                # If 2D, reshape to (1, sequence_length, input_features)
+                current_sequence = current_sequence.unsqueeze(0)
+            elif current_sequence.dim() == 3:
+                # If 3D, ensure first dimension is 1 (batch_size)
+                if current_sequence.shape[0] != 1:
+                    current_sequence = current_sequence.unsqueeze(0)
+            else:
+                # If 4D or more, take the first batch
+                current_sequence = current_sequence[0:1]
+            
+            print(f"Step {i}: after reshape, shape: {current_sequence.shape}")
             
             # Make prediction
-            prediction = model(current_sequence.unsqueeze(0))
+            prediction = model(current_sequence)
             forecasts.append(prediction.item())
             
             # Update sequence for next prediction
+            # Remove the batch dimension and add prediction
+            if current_sequence.dim() == 3:
+                current_sequence = current_sequence.squeeze(0)  # Remove batch dimension
+            
+            # Add prediction to the end of the sequence
             current_sequence = torch.cat([current_sequence[1:], prediction.unsqueeze(0)], dim=0)
     
     return np.array(forecasts)
@@ -219,6 +240,9 @@ def main():
             with st.spinner("Generating forecasts..."):
                 # Get last sequence for forecasting
                 last_sequence = torch.tensor(normalized_prices[-sequence_length:], dtype=torch.float32)
+                
+                # Debug: Print tensor shape
+                st.info(f"Debug: last_sequence shape: {last_sequence.shape}")
                 
                 # Generate forecast
                 normalized_forecast = make_forecast(model, last_sequence, forecast_steps)
