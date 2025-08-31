@@ -126,12 +126,26 @@ def make_forecast(model, last_sequence, forecast_steps):
             # Ensure prediction has the same number of dimensions as current_sequence
             if current_sequence.dim() == 2:
                 # current_sequence is (sequence_length, input_features)
-                # prediction should be (1, input_features)
+                # prediction should be (1, input_features) - same as current_sequence[1:]
                 prediction_reshaped = prediction.unsqueeze(-1)
-            else:
+            elif current_sequence.dim() == 1:
                 # current_sequence is (sequence_length,)
-                # prediction should be (1,)
+                # prediction should be (1,) - same as current_sequence[1:]
                 prediction_reshaped = prediction.unsqueeze(0)
+            else:
+                # Fallback: ensure prediction is 1D
+                prediction_reshaped = prediction.squeeze()
+                if prediction_reshaped.dim() == 0:
+                    prediction_reshaped = prediction_reshaped.unsqueeze(0)
+            
+            # Ensure both tensors have the same number of dimensions before concatenation
+            if current_sequence[1:].dim() != prediction_reshaped.dim():
+                if current_sequence[1:].dim() == 2 and prediction_reshaped.dim() == 3:
+                    # Remove the extra dimension from prediction_reshaped
+                    prediction_reshaped = prediction_reshaped.squeeze(0)
+                elif current_sequence[1:].dim() == 1 and prediction_reshaped.dim() == 2:
+                    # Remove the extra dimension from prediction_reshaped
+                    prediction_reshaped = prediction_reshaped.squeeze(0)
             
             current_sequence = torch.cat([current_sequence[1:], prediction_reshaped], dim=0)
     
