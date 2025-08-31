@@ -105,9 +105,7 @@ def make_forecast(model, last_sequence, forecast_steps):
         current_sequence = last_sequence.clone()
         forecasts = []
         
-        # Debug: Print initial tensor shapes
-        print(f"DEBUG: last_sequence shape: {last_sequence.shape}")
-        print(f"DEBUG: current_sequence initial shape: {current_sequence.shape}")
+
         
         for i in range(forecast_steps):
             # Ensure current_sequence is 3D: (batch_size, sequence_length, input_features)
@@ -134,8 +132,6 @@ def make_forecast(model, last_sequence, forecast_steps):
                 # current_sequence is (sequence_length,)
                 # prediction should be (1,)
                 prediction_reshaped = prediction.unsqueeze(0)
-            
-            print(f"DEBUG: Step {i+1} - current_sequence shape: {current_sequence.shape}, prediction shape: {prediction.shape}, prediction_reshaped shape: {prediction_reshaped.shape}")
             
             current_sequence = torch.cat([current_sequence[1:], prediction_reshaped], dim=0)
     
