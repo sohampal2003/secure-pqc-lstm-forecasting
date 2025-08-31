@@ -110,13 +110,6 @@ def make_forecast(model, last_sequence, forecast_steps):
             if current_sequence.dim() == 2:
                 # If 2D, add batch dimension: (1, sequence_length, input_features)
                 current_sequence = current_sequence.unsqueeze(0)
-            elif current_sequence.dim() == 3:
-                # If 3D, ensure first dimension is 1 (batch_size)
-                if current_sequence.shape[0] != 1:
-                    current_sequence = current_sequence.unsqueeze(0)
-            else:
-                # If 4D or more, take the first batch
-                current_sequence = current_sequence[0:1]
             
             # Make prediction
             prediction = model(current_sequence)
@@ -128,7 +121,7 @@ def make_forecast(model, last_sequence, forecast_steps):
                 current_sequence = current_sequence.squeeze(0)
             
             # Add prediction to the end of the sequence
-            current_sequence = torch.cat([current_sequence[1:], prediction.unsqueeze(0)], dim=0)
+            current_sequence = torch.cat([current_sequence[1:], prediction], dim=0)
     
     return np.array(forecasts)
 
